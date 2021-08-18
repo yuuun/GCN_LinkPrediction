@@ -63,11 +63,14 @@ class Data():
             self.test_list = self.load_sampled_edge('./dataset/test.edge')
 
         self.train_adj = self.load_adj()
-        self.make_test_edge()
+        
+        if os.path.isfile('./data/false.test'):
+            self.load_false_edge()
+        else:
+            self.make_test_edge()
 
     def make_test_edge(self):
         import datetime
-        print('making false edges', datetime.datetime.now())
         def ismember(a, b, tol=5):
             rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
             return np.any(rows_close)
@@ -79,7 +82,7 @@ class Data():
             idx_j = np.random.randint(0, self.n_node)
             if idx_i == idx_j:
                 continue
-            if ismember([idx_i, idx_j], total_edge_list_np):
+            if idx_i in self.edge_total_dict[idx_j] or idx_j in self.edge_total_dict[idx_i]:
                 continue
             if false_test:
                 if ismember([idx_j, idx_i], np.array(false_test)):
@@ -88,11 +91,17 @@ class Data():
                     continue
             false_test.append([idx_i, idx_j])
         
-        print('end of making false edges', datetime.datetime.now())
         self.false_test = false_test
         with open('./dataset/false.test', 'w') as f:
             for e1, e2 in false_test:
                 f.write(str(e1) + ' ' + str(e2) + '\n')
+
+    def load_false_edge(self):
+        lines = open('./dataset/false.test', 'r').readlines()
+        self.false_test = []
+        for l in lines:
+            val = [int(i) for i in l.strip().split()]
+            self.false_test.append([val[0], val[1]])
 
     def sample_edge(self):
         exclude_edge = []

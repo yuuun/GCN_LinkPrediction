@@ -9,11 +9,13 @@ class GCN(nn.Module):
         self.gc1 = GraphConvolution(nfeat, nhid)
         self.gc2 = GraphConvolution(nhid, nhid)
         self.dropout = dropout
-        
-    def forward(self, x, adj):
+
+    def forward(self, x, adj, idx):
         x = F.relu(self.gc1(x, adj))
         x = F.dropout(x, self.dropout, training = self.training)
         x = self.gc2(x, adj)
-        adj_pred = torch.sigmoid(torch.matmul(x, x.t()))
-
+        
+        adj_pred = torch.sigmoid(torch.matmul(x[idx], x.t()))
+        # adj_pred = torch.sigmoid(x @ x.t())
+        
         return adj_pred

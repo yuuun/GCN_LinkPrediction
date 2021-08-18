@@ -15,15 +15,6 @@ class Data():
         self.load_feature(feature_path)
         self.load_edge(edge_path)
         self.fadj = self.load_adj()
-        
-    def normalize(self, mx):
-        """Row-normalize sparse matrix"""
-        rowsum = np.array(mx.sum(1))
-        r_inv = np.power(rowsum, -1).flatten()
-        r_inv[np.isinf(r_inv)] = 0.
-        r_mat_inv = sp.diags(r_inv)
-        mx = r_mat_inv.dot(mx)
-        return mx  
 
     def sparse_mx_to_torch_sparse_tensor(self, sparse_mx):
         """Convert a scipy sparse matrix to a torch sparse tensor."""
@@ -38,10 +29,9 @@ class Data():
         edges = np.array(self.edge_list, dtype=np.int32)
         fadj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])), shape=(self.n_node, self.n_node), dtype=np.float32)
         fadj = fadj + fadj.T.multiply(fadj.T > fadj) - fadj.multiply(fadj.T > fadj)
-        nfadj = self.normalize(fadj + sp.eye(fadj.shape[0]))
-        nfadj = self.sparse_mx_to_torch_sparse_tensor(nfadj)
+        fadj = self.sparse_mx_to_torch_sparse_tensor(fadj)
 
-        return nfadj 
+        return fadj 
     
     def load_edge(self, edge_path):
         lines = open(edge_path, 'r').readlines()
@@ -110,13 +100,6 @@ class Data():
             val = [int(i) for i in l.strip().split()]
             edge_list.append([val[0], val[1]])
         return edge_list
-
-    def load_adj(self):
-        edges = np.array(self.train_list, dtype=np.int32)
-        fadj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])), shape=(self.n_node, self.n_node), dtype=np.float32)
-        fadj = fadj + fadj.T.multiply(fadj.T > fadj) - fadj.multiply(fadj.T > fadj)
-
-        return fadj
 
     def load_feature(self, feature_path):
         lines = open(feature_path, 'r').readlines()

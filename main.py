@@ -24,7 +24,6 @@ def get_batch_adj(batch_idx, adj):
 
 if __name__=='__main__':
     
-    '''
     data = Data('./dataset/oag')
     
     with open('data.pkl', 'wb') as f:
@@ -34,10 +33,12 @@ if __name__=='__main__':
     
     with open('data.pkl', 'rb') as f:
         data = pickle.load(f)
+    '''
+    import pdb; pdb.set_trace()
     
 
     model = GCN(nfeat = data.features.shape[1], nhid=160, dropout=0.5)
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     adj = data.fadj
     # norm = adj.shape[0] * adj.shape[0] / float((adj.shape[0] * adj.shape[0] - adj.sum()) * 2)
     batch_size = 32
@@ -49,10 +50,14 @@ if __name__=='__main__':
     
     for epoch in range(0, 10001):
         total_loss = 0.
+        start = time.time()
         for idx in range(0, data.n_node, batch_size):
-            batch_idx = [i for i in range(idx, idx + batch_size)]
+            start_ = time.time()
+            idx_end = idx + batch_size
+            if idx_end > data.n_node:
+                idx_end = data.n_node
+            batch_idx = [i for i in range(idx, idx_end)]
             
-            start = time.time()
             model.train()
             optimizer.zero_grad()
             adj_pred = model(features, fadj, batch_idx)
@@ -66,7 +71,7 @@ if __name__=='__main__':
             optimizer.step()
             total_loss += loss.item() / n_batch
             if idx % 100 == 0:
-                print(epoch, idx, loss.item(), time.time() - start, adj_pred.view(-1))
+                print(epoch, idx, loss.item(), time.time() - start_, adj_pred.view(-1))
 
         if epoch % 1 == 0:
             

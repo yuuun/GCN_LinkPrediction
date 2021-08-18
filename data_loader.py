@@ -38,6 +38,7 @@ class Data():
         edge_dict = dict()
         self.edge_total_dict = defaultdict(list)
         self.edge_list = []
+        self.total_edge_list = []
         
         for l in lines:
             tmp = l.strip() #deleting '\n'
@@ -52,6 +53,8 @@ class Data():
                 self.edge_total_dict[node].append(node_id)
             for ln in linked_node:
                 self.edge_list.append([node_id, ln]) 
+                self.total_edge_list.append([node_id, ln])
+                self.total_edge_list.append([ln, node_id])
 
         if not(os.path.isfile('./dataset/test.edge') and os.path.isfile('./dataset/train.edge')):
             self.train_list, self.test_list = self.sample_edge()
@@ -60,6 +63,36 @@ class Data():
             self.test_list = self.load_sampled_edge('./dataset/test.edge')
 
         self.train_adj = self.load_adj()
+        self.make_test_edge()
+
+    def make_test_edge(self):
+        import datetime
+        print('making false edges', datetime.datetime.now())
+        def ismember(a, b, tol=5):
+            rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
+            return np.any(rows_close)
+            
+        total_edge_list_np = np.array(self.total_edge_list)
+        false_test = []
+        while len(false_test) < len(self.test_list):
+            idx_i = np.random.randint(0, self.n_node)
+            idx_j = np.random.randint(0, self.n_node)
+            if idx_i == idx_j:
+                continue
+            if ismember([idx_i, idx_j], total_edge_list_np):
+                continue
+            if false_test:
+                if ismember([idx_j, idx_i], np.array(false_test)):
+                    continue
+                if ismember([idx_i, idx_j], np.array(false_test)):
+                    continue
+            false_test.append([idx_i, idx_j])
+        
+        print('end of making false edges', datetime.datetime.now())
+        self.false_test = false_test
+        with open('./dataset/false.test', 'w') as f:
+            for e1, e2 in false_test:
+                f.write(str(e1) + ' ' + str(e2) + '\n')
 
     def sample_edge(self):
         exclude_edge = []

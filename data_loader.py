@@ -29,7 +29,7 @@ class Data():
         edges = np.array(self.edge_list, dtype=np.int32)
         fadj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])), shape=(self.n_node, self.n_node), dtype=np.float32)
         fadj = fadj + fadj.T.multiply(fadj.T > fadj) - fadj.multiply(fadj.T > fadj)
-        fadj = self.sparse_mx_to_torch_sparse_tensor(fadj)
+        fadj = self.sparse_mx_to_torch_sparse_tensor(fadj + sp.eye(fadj.shape[0]))
 
         return fadj 
     

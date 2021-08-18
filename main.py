@@ -1,3 +1,8 @@
+
+import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
+
 import math
 import random
 from sklearn.metrics import classification_report
@@ -35,8 +40,12 @@ if __name__=='__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     adj = data.fadj
     # norm = adj.shape[0] * adj.shape[0] / float((adj.shape[0] * adj.shape[0] - adj.sum()) * 2)
-    batch_size = 1024
+    batch_size = 32
     n_batch = data.n_node // batch_size + 1
+    if torch.cuda.is_available():
+        model.cuda()
+        features = data.features.cuda()
+        fadj = data.fadj.cuda()
     
     for epoch in range(0, 10001):
         total_loss = 0.
@@ -46,18 +55,18 @@ if __name__=='__main__':
             start = time.time()
             model.train()
             optimizer.zero_grad()
-            adj_pred = model(data.features, data.fadj, batch_idx)
+            adj_pred = model(features, fadj, batch_idx)
 
-            dd = time.time()
-            loss = F.binary_cross_entropy(adj_pred.view(-1), get_batch_adj(batch_idx, adj))
+            loss = F.binary_cross_entropy(adj_pred.view(-1), get_batch_adj(batch_idx, adj).cuda())
             # loss = norm * F.binary_corss_entropy(adj_pred.view(-1), adj.to_dense().view(-1))
             # loss_train = F.nll_loss(output[data.idx_train], lab[data.idx_train])
-            print(time.time() - dd)
+
                 
             loss.backward()
             optimizer.step()
             total_loss += loss.item() / n_batch
-            print(epoch, idx, loss.item(), time.time() - start, time.time() - dd)
+            if idx % 100 == 0:
+                print(epoch, idx, loss.item(), time.time() - start, adj_pred.view(-1))
 
         if epoch % 1 == 0:
             

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 import math
+import torch.nn.functional as F
 
 class GraphConvolution(nn.Module):
     """
@@ -37,3 +38,17 @@ class GraphConvolution(nn.Module):
         return self.__class__.__name__ + ' (' \
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
+
+class GraphConvSparse(nn.Module):
+	def __init__(self, input_dim, output_dim, adj, activation = F.relu, **kwargs):
+		super(GraphConvSparse, self).__init__(**kwargs)
+		self.weight = glorot_init(input_dim, output_dim) 
+		self.adj = adj
+		self.activation = activation
+
+	def forward(self, inputs):
+		x = inputs
+		x = torch.mm(x,self.weight)
+		x = torch.mm(self.adj, x)
+		outputs = self.activation(x)
+		return outputs

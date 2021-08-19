@@ -70,12 +70,10 @@ class Data():
             self.make_test_edge()
 
     def make_test_edge(self):
-        import datetime
         def ismember(a, b, tol=5):
             rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
             return np.any(rows_close)
             
-        total_edge_list_np = np.array(self.total_edge_list)
         false_test = []
         while len(false_test) < len(self.test_list):
             idx_i = np.random.randint(0, self.n_node)

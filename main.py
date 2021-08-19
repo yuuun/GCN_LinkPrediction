@@ -15,6 +15,7 @@ import torch
 import torch.optim as optim
 import numpy as np
 import scipy.sparse as sp
+from utils import *
 
 def get_batch_adj(batch_idx, adj):
     densed_batch_adj = torch.Tensor()
@@ -23,7 +24,7 @@ def get_batch_adj(batch_idx, adj):
     return densed_batch_adj
 
 if __name__=='__main__':
-    
+    '''
     data = Data('./dataset/oag')
     
     with open('data.pkl', 'wb') as f:
@@ -33,8 +34,7 @@ if __name__=='__main__':
     
     with open('data.pkl', 'rb') as f:
         data = pickle.load(f)
-    '''
-    import pdb; pdb.set_trace()
+    
     
 
     model = GCN(nfeat = data.features.shape[1], nhid=160, dropout=0.5)
@@ -48,30 +48,21 @@ if __name__=='__main__':
         features = data.features.cuda()
         fadj = data.fadj.cuda()
     
-    for epoch in range(0, 10001):
+    for epoch in range(1, 10001):
         total_loss = 0.
         start = time.time()
-        for idx in range(0, data.n_node, batch_size):
+        for idx in range(n_batch):
             start_ = time.time()
-            idx_end = idx + batch_size
-            if idx_end > data.n_node:
-                idx_end = data.n_node
-            batch_idx = [i for i in range(idx, idx_end)]
-            
+            head, pos_tail, neg_tail = generate_batch(data.edge_total_dict, batch_size)
             model.train()
             optimizer.zero_grad()
-            adj_pred = model(features, fadj, batch_idx)
-
-            loss = F.binary_cross_entropy(adj_pred.view(-1), get_batch_adj(batch_idx, adj).cuda())
-            # loss = norm * F.binary_corss_entropy(adj_pred.view(-1), adj.to_dense().view(-1))
-            # loss_train = F.nll_loss(output[data.idx_train], lab[data.idx_train])
-
-                
+            loss = model(features, fadj, head, pos_tail, neg_tail)
+  
             loss.backward()
             optimizer.step()
             total_loss += loss.item() / n_batch
             if idx % 100 == 0:
-                print(epoch, idx, loss.item(), time.time() - start_, adj_pred.view(-1))
+                print(epoch, idx, loss.item(), time.time() - start_)
 
         if epoch % 1 == 0:
             

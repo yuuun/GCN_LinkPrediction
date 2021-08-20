@@ -25,16 +25,17 @@ def get_batch_adj(batch_idx, adj):
     return densed_batch_adj
 
 if __name__=='__main__':
-    '''
+    
     data = Data('./dataset/oag')
     
-    with open('data.pkl', 'wb') as f:
+    with open('data2.pkl', 'wb') as f:
         pickle.dump(data, f)
     
     '''
     
-    with open('data.pkl', 'rb') as f:
+    with open('data2.pkl', 'rb') as f:
         data = pickle.load(f)
+    '''
     model = GCN(nfeat = data.features.shape[1], nhid=160, dropout=0.5)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     

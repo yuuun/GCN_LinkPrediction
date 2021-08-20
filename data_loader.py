@@ -24,12 +24,23 @@ class Data():
         values = torch.from_numpy(sparse_mx.data)
         shape = torch.Size(sparse_mx.shape)
         return torch.sparse.FloatTensor(indices, values, shape)
+
+    def normalize(self, mx):
+        """Row-normalize sparse matrix"""
+        rowsum = np.array(mx.sum(1))
+        r_inv = np.power(rowsum, -1).flatten()
+        r_inv[np.isinf(r_inv)] = 0.
+        r_mat_inv = sp.diags(r_inv)
+        mx = r_mat_inv.dot(mx)
+        return mx  
         
     def load_adj(self):
         edges = np.array(self.edge_list, dtype=np.int32)
         fadj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])), shape=(self.n_node, self.n_node), dtype=np.float32)
         fadj = fadj + fadj.T.multiply(fadj.T > fadj) - fadj.multiply(fadj.T > fadj)
-        fadj = self.sparse_mx_to_torch_sparse_tensor(fadj + sp.eye(fadj.shape[0]))
+        
+        fadj = self.normalize(fadj + sp.eye(fadj.shape[0]))
+        fadj = self.sparse_mx_to_torch_sparse_tensor(fadj)
 
         return fadj 
     

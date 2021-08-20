@@ -4,7 +4,6 @@ import torch.nn as nn
 from layers import *
 import torch.nn.functional as F
 
-
 class GCN(nn.Module):
     def __init__(self, nfeat, nhid, dropout):
         super(GCN, self).__init__()
@@ -20,14 +19,14 @@ class GCN(nn.Module):
         head_embed = x[head]
         pos_tail_embed = x[pos_tail]
         neg_tail_embed = x[neg_tail]
-
+        
         #loss with kgat - cf loss 
         pos_score = torch.sum(head_embed * pos_tail_embed, dim=1)
         neg_score = torch.sum(head_embed * neg_tail_embed, dim=1)
-
+        
         loss = (-1.0) * F.logsigmoid(pos_score - neg_score)
         loss = torch.mean(loss)
-
+        
         #l2_loss = self._L2_loss_mean(head_embed) + self._L2_loss_mean(pos_tail_embed) + self._L2_loss_mean(neg_tail_embed)
         loss = loss #+ 1e-5 * l2_loss
         

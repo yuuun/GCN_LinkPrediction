@@ -38,8 +38,8 @@ if __name__=='__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     adj = data.fadj
     
-    adj_orig = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
-    adj_orig.eliminate_zeros()
+    # adj_orig = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
+    # adj_orig.eliminate_zeros()
     # norm = adj.shape[0] * adj.shape[0] / float((adj.shape[0] * adj.shape[0] - adj.sum()) * 2)
     batch_size = 32
     n_batch = data.n_node // batch_size + 1
@@ -63,20 +63,20 @@ if __name__=='__main__':
             adj_pred = model(features, fadj, batch_idx)
 
             dd = time.time()
-            loss = F.binary_cross_entropy(adj_pred.view(-1), get_batch_adj(batch_idx, adj))
+            loss = F.binary_cross_entropy(adj_pred.view(-1), get_batch_adj(batch_idx, adj).cuda())
   
             loss.backward()
             optimizer.step()
             total_loss += loss.item() / n_batch
-            if idx % 100 == 0:
-                print(epoch, idx, loss.item(), time.time() - start_)
+            # if idx % 100 == 0:
+            #     print(epoch, idx, loss.item(), time.time() - start_)
             
         torch.save({
             'epoch': epoch, 
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss,
-        }, './pt/multiply_loss_' + str(epoch) + '.pt')
+        }, '../pt/multiply_loss_' + str(epoch) + '_' + str(round(loss.item(), 2)) + '.pt')
         
         if epoch % 1000 == 0:
             
@@ -88,7 +88,7 @@ if __name__=='__main__':
                 #TBD
 
 
-
+    '''
     def get_scores(edges_pos, edges_neg, adj_rec):
 
         def sigmoid(x):
@@ -116,3 +116,4 @@ if __name__=='__main__':
         ap_score = average_precision_score(labels_all, preds_all)
 
         return roc_score, ap_score
+    '''

@@ -14,7 +14,7 @@ class Data():
 
         self.load_feature(feature_path)
         self.load_edge(edge_path)
-        self.fadj = self.load_adj()
+        #self.fadj = self.load_adj()
 
     def sparse_mx_to_torch_sparse_tensor(self, sparse_mx):
         """Convert a scipy sparse matrix to a torch sparse tensor."""
@@ -34,8 +34,8 @@ class Data():
         mx = r_mat_inv.dot(mx)
         return mx  
         
-    def load_adj(self):
-        edges = np.array(self.edge_list, dtype=np.int32)
+    def load_adj(self, e_list):
+        edges = np.array(e_list, dtype=np.int32)
         fadj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])), shape=(self.n_node, self.n_node), dtype=np.float32)
         fadj = fadj + fadj.T.multiply(fadj.T > fadj) - fadj.multiply(fadj.T > fadj)
         
@@ -73,7 +73,7 @@ class Data():
             self.train_list = self.load_sampled_edge('./dataset/train.edge')
             self.test_list = self.load_sampled_edge('./dataset/test.edge')
 
-        self.train_adj = self.load_adj()
+        self.train_adj = self.load_adj(self.train_list)
         
         if os.path.isfile('./data/false.test'):
             self.load_false_edge()

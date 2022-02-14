@@ -8,9 +8,9 @@ import os
 
 class Data():
     def __init__(self, data_path):
-        self.data_path = data_path
-        edge_path = data_path + '.edge'
-        feature_path = data_path + ".feature"
+        self.data_path = data_path 
+        edge_path = data_path + 'oag.edge'
+        feature_path = data_path + "oag.feature"
 
         self.load_feature(feature_path)
         print('end loading feature')
@@ -77,12 +77,12 @@ class Data():
 
         self.train_adj = self.load_adj(self.train_list)
         
-        '''
-        if os.path.isfile('./data/false.test'):
+        
+        if os.path.isfile('./dataset/false.test'):
             self.load_false_edge()
         else:
             self.make_test_edge()
-        '''
+        
         
 
     def make_test_edge(self):

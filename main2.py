@@ -6,7 +6,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import math
 import random
 from sklearn.metrics import classification_report
-from data_loader import Data
+from data_loader2 import Data
 from models import *
 import time
 import pickle
@@ -27,15 +27,15 @@ def get_batch_adj(batch_idx, adj):
 if __name__=='__main__':
     
     '''
-    data = Data('./dataset/oag')
+    data = Data('./dataset/')
     
-    with open('data2.pkl', 'wb') as f:
+    with open('data3.pkl', 'wb') as f:
         pickle.dump(data, f)
     
     '''
-    
-    with open('data2.pkl', 'rb') as f:
+    with open('data3.pkl', 'rb') as f:
         data = pickle.load(f)
+
     
     
     model = GCN(nfeat = data.features.shape[1], nhid=160, dropout=0.5)
@@ -46,6 +46,8 @@ if __name__=='__main__':
     # norm = adj.shape[0] * adj.shape[0] / float((adj.shape[0] * adj.shape[0] - adj.sum()) * 2)
     batch_size = 1024
     n_batch = data.n_node // batch_size + 1
+    n_batch = 100
+    
     if torch.cuda.is_available():
         model.cuda()
         features = data.features.cuda()
@@ -54,6 +56,7 @@ if __name__=='__main__':
     for epoch in range(1, 10001):
         total_loss = 0.
         start = time.time()
+        model.cuda()
         for idx in range(n_batch):
             start_ = time.time()
             head, pos_tail, neg_tail = generate_batch(data.edge_total_dict, batch_size)
@@ -76,13 +79,13 @@ if __name__=='__main__':
                 'loss': loss,
             }, './pt/2cf_loss_' + str(epoch) + '_' + str(round(total_loss, 2)) + '.pt')
         
-        logging.info(str(epoch) + ' | ' + str(round(total_loss, 2)) + ' | ' + str(round(time.time() - start, 2)))
+        logging.info('epoch: {:2d},\t loss: {:.4f},\t time: {:.2f}s'.format(epoch, loss.item(), time.time() - start))
 
-        if epoch % 10000000 == 0:
-            print('{:2d} {:.4f} {:.2f}s\n'.format(epoch, loss.item(), time.time() - start), end='\t')
+            # print('{:2d} {:.4f} {:.2f}s\n'.format(epoch, loss.item(), time.time() - start), end='\t')
 
-            with torch.no_grad():
-                batch_idx = []
-                model.eval()
-                cf_score = model.test(data.features, data.nfadj, batch_idx)
-                #TBD
+        with torch.no_grad():
+            batch_idx = []
+            model.cpu()
+            model.eval()
+            roc_score, ap_score = model.test(data.features, data.train_adj, data.test_list, data.false_test)
+            logging.info('roc: {:.4f}, ap: {:.4f}'.format(roc_score, ap_score))

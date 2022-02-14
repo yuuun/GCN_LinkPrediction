@@ -68,9 +68,7 @@ if __name__=='__main__':
             loss.backward()
             optimizer.step()
             total_loss += loss.item() / n_batch
-            # if idx % 1000 == 0:
-            #     print(epoch, idx, loss.item(), time.time() - start_)
-        
+            
         if epoch % 100 == 0:
             torch.save({
                 'epoch': epoch, 
@@ -79,13 +77,14 @@ if __name__=='__main__':
                 'loss': loss,
             }, './pt/2cf_loss_' + str(epoch) + '_' + str(round(total_loss, 2)) + '.pt')
         
-        logging.info('epoch: {:2d},\t loss: {:.4f},\t time: {:.2f}s'.format(epoch, loss.item(), time.time() - start))
-
+        # logging.info('epoch: {:2d},\t loss: {:.4f},\t time: {:.2f}s'.format(epoch, loss.item(), time.time() - start))
+        train_time = time.time() - start
             # print('{:2d} {:.4f} {:.2f}s\n'.format(epoch, loss.item(), time.time() - start), end='\t')
 
         with torch.no_grad():
             batch_idx = []
             model.cpu()
             model.eval()
+            start = time.time()
             roc_score, ap_score = model.test(data.features, data.train_adj, data.test_list, data.false_test)
-            logging.info('roc: {:.4f}, ap: {:.4f}'.format(roc_score, ap_score))
+            logging.info('epoch: {:2d}| train loss: {:.4f},\t time: {:.2f}s | test roc: {:.4f}, ap: {:.4f}, time: {:.2f}s'.format(epoch, loss.item(), train_time, roc_score, ap_score, time.time() - start))

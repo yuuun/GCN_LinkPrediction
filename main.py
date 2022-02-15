@@ -25,8 +25,8 @@ def get_batch_adj(batch_idx, adj):
     return densed_batch_adj
 
 if __name__=='__main__':
-    
     '''
+    
     data = Data()
     
     with open('data3.pkl', 'wb') as f:
@@ -59,7 +59,7 @@ if __name__=='__main__':
         model.cuda()
         for idx in range(n_batch):
             start_ = time.time()
-            head, pos_tail, neg_tail = generate_batch(data.edge_total_dict, batch_size)
+            head, pos_tail, neg_tail = generate_batch(data.edge_train_dict, batch_size)
             model.train()
             optimizer.zero_grad()
             

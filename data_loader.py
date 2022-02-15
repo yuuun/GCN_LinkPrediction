@@ -46,44 +46,57 @@ class Data():
         return fadj 
     
     def load_edge(self, edge_path):
-        
-
         if not(os.path.isfile('./dataset/test.edge') and os.path.isfile('./dataset/train.edge')):
-            self.train_list, self.test_list = self.sample_edge()
+            self.train_list, self.test_list = self.sample_edge('./dataset/oag.edge')
         else:
-            lines = open(edge_path, 'r').readlines()
-            edge_dict = dict()
-            self.edge_total_dict = defaultdict(list)
-            self.edge_list = []
-            self.total_edge_list = []
-            
-            for l in lines:
-                tmp = l.strip() #deleting '\n'
-                val = [int(i) for i in tmp.split()]
-                node_id = val[0] 
-                linked_node = val[1:]
-            
-                edge_dict[node_id] = linked_node
-                
-                for node in linked_node:
-                    self.edge_total_dict[node_id].append(node)
-                    self.edge_total_dict[node].append(node_id)
-                for ln in linked_node:
-                    self.edge_list.append([node_id, ln]) 
-                    self.total_edge_list.append([node_id, ln])
-                    self.total_edge_list.append([ln, node_id])
-                    
             self.train_list = self.load_sampled_edge('./dataset/train.edge')
             self.test_list = self.load_sampled_edge('./dataset/test.edge')
 
-        self.train_adj = self.load_adj(self.train_list)
+        lines = open('./dataset/oag.edge', 'r').readlines()
+        edge_dict = dict()
+        self.edge_total_dict = []
         
+        for l in lines:
+            tmp = l.strip() #deleting '\n'
+            val = [int(i) for i in tmp.split()]
+            node_id = val[0] 
+            linked_node = val[1:]
+        
+            edge_dict[node_id] = linked_node
+            
+            for ln in linked_node:
+                self.edge_total_dict.append([node_id, ln])
+                self.edge_total_dict.append([ln, node_id])
+                
+
+        lines = open('./dataset/train.edge', 'r').readlines()
+        edge_dict = dict()
+        self.edge_train_dict = defaultdict(list)
+        self.edge_list = []
+        self.train_edge_list = []
+        
+        for l in lines:
+            tmp = l.strip() #deleting '\n'
+            val = [int(i) for i in tmp.split()]
+            node_id = val[0] 
+            linked_node = val[1:]
+        
+            edge_dict[node_id] = linked_node
+            
+            for node in linked_node:
+                self.edge_train_dict[node_id].append(node)
+                self.edge_train_dict[node].append(node_id)
+            for ln in linked_node:
+                self.edge_list.append([node_id, ln]) 
+                self.train_edge_list.append([node_id, ln])
+                self.train_edge_list.append([ln, node_id])
+
+        self.train_adj = self.load_adj(self.train_list)
         
         if os.path.isfile('./dataset/false.test'):
             self.load_false_edge()
         else:
             self.make_test_edge()
-        
         
 
     def make_test_edge(self):
@@ -118,22 +131,35 @@ class Data():
             val = [int(i) for i in l.strip().split()]
             self.false_test.append([val[0], val[1]])
 
-    def sample_edge(self):
+    def sample_edge(self, edge_path):
+        edge_list = []
+        edge_total_dict = defaultdict(list)
+        lines = open(edge_path, 'r').readlines()
+        for l in lines:
+            tmp = l.strip()
+            val = [int(i) for i in tmp.split()]
+            node_id = val[0]
+            linked_node = val[1:]
+            for node in linked_node:
+                edge_list.append([node_id, node])
+                edge_total_dict[node_id].append(node)
+                edge_total_dict[node].append(node_id)
+
         exclude_edge = []
 
-        for node, linked_node in self.edge_total_dict.items():
+        for node, linked_node in edge_total_dict.items():
             if len(linked_node) < 3:
                 exclude_edge.append(node)
 
         candidate_edge_list = []
         train_list = []
-        for e1, e2 in self.edge_list:
+        for e1, e2 in edge_list:
             if e1 not in exclude_edge and e2 not in exclude_edge:
                 candidate_edge_list.append([e1, e2])
             else:
                 train_list.append([e1, e2])
 
-        n_test = int(len(self.edge_list) * 0.1)
+        n_test = int(len(edge_list) * 0.1)
         rd.shuffle(candidate_edge_list)
         test_list = sorted(candidate_edge_list[:n_test], key=lambda x:(x[0], x[1]))
         

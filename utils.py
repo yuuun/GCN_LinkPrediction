@@ -5,11 +5,12 @@ from sklearn.metrics import roc_auc_score, log_loss, mean_squared_error
 
 def generate_batch(edge_total_dict, batch_size):
     n_node = len(edge_total_dict)
-    head = [rd.randint(0, n_node - 1) for _ in range(batch_size)]
+    head = rd.sample([*edge_total_dict], batch_size)
     pos_tail, neg_tail = [], []
     for h in head:
         head_list = edge_total_dict[h]
         pos_tail.append(rd.sample(head_list, 1)[0])
+        
         while True:
             cand = rd.randint(0, n_node - 1)
             if cand not in head_list:

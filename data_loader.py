@@ -7,14 +7,13 @@ import torch
 import os
 
 class Data():
-    def __init__(self, data_path):
-        self.data_path = data_path 
-        edge_path = data_path + 'oag.edge'
-        feature_path = data_path + "oag.feature"
+    def __init__(self, ):
+        train_edge_path = './dataset/train.edge'
+        feature_path = "./dataset/oag.feature"
 
         self.load_feature(feature_path)
         print('end loading feature')
-        self.load_edge(edge_path)
+        self.load_edge(train_edge_path)
         print('end loading edge')
         #self.fadj = self.load_adj()
 
@@ -47,31 +46,33 @@ class Data():
         return fadj 
     
     def load_edge(self, edge_path):
-        lines = open(edge_path, 'r').readlines()
-        edge_dict = dict()
-        self.edge_total_dict = defaultdict(list)
-        self.edge_list = []
-        self.total_edge_list = []
         
-        for l in lines:
-            tmp = l.strip() #deleting '\n'
-            val = [int(i) for i in tmp.split()]
-            node_id = val[0] 
-            linked_node = val[1:]
-        
-            edge_dict[node_id] = linked_node
-            
-            for node in linked_node:
-                self.edge_total_dict[node_id].append(node)
-                self.edge_total_dict[node].append(node_id)
-            for ln in linked_node:
-                self.edge_list.append([node_id, ln]) 
-                self.total_edge_list.append([node_id, ln])
-                self.total_edge_list.append([ln, node_id])
 
         if not(os.path.isfile('./dataset/test.edge') and os.path.isfile('./dataset/train.edge')):
             self.train_list, self.test_list = self.sample_edge()
         else:
+            lines = open(edge_path, 'r').readlines()
+            edge_dict = dict()
+            self.edge_total_dict = defaultdict(list)
+            self.edge_list = []
+            self.total_edge_list = []
+            
+            for l in lines:
+                tmp = l.strip() #deleting '\n'
+                val = [int(i) for i in tmp.split()]
+                node_id = val[0] 
+                linked_node = val[1:]
+            
+                edge_dict[node_id] = linked_node
+                
+                for node in linked_node:
+                    self.edge_total_dict[node_id].append(node)
+                    self.edge_total_dict[node].append(node_id)
+                for ln in linked_node:
+                    self.edge_list.append([node_id, ln]) 
+                    self.total_edge_list.append([node_id, ln])
+                    self.total_edge_list.append([ln, node_id])
+                    
             self.train_list = self.load_sampled_edge('./dataset/train.edge')
             self.test_list = self.load_sampled_edge('./dataset/test.edge')
 

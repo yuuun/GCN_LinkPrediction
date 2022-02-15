@@ -6,7 +6,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import math
 import random
 from sklearn.metrics import classification_report
-from data_loader2 import Data
+from data_loader import Data
 from models import *
 import time
 import pickle
@@ -27,7 +27,7 @@ def get_batch_adj(batch_idx, adj):
 if __name__=='__main__':
     
     '''
-    data = Data('./dataset/')
+    data = Data()
     
     with open('data3.pkl', 'wb') as f:
         pickle.dump(data, f)
@@ -35,7 +35,7 @@ if __name__=='__main__':
     '''
     with open('data3.pkl', 'rb') as f:
         data = pickle.load(f)
-
+    
     
     
     model = GCN(nfeat = data.features.shape[1], nhid=160, dropout=0.5)
